@@ -28,6 +28,14 @@ export default function RootLayout({
           {children}
         </PublicNavWrapper>
         <Toaster position="top-center" richColors />
+        
+        {/* Watermark */}
+        <div className="fixed bottom-4 right-4 z-[9999] pointer-events-none">
+          <div className="bg-white/80 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-slate-200/50 flex items-center gap-2">
+            <span className="text-xs font-semibold text-slate-400">Made By</span>
+            <span className="text-sm font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">AiNine</span>
+          </div>
+        </div>
       </body>
     </html>
   );
