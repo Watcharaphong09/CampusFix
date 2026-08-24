@@ -165,16 +165,16 @@ export default function ReportForm() {
   const { register, handleSubmit, control, formState: { errors } } = form;
 
   return (
-    <Card className="w-full max-w-2xl mx-auto border-slate-200/60 shadow-lg shadow-slate-200/40 bg-white/70 backdrop-blur-md">
-      <CardHeader className="space-y-1 bg-slate-900 text-white rounded-t-xl">
-        <CardTitle className="text-2xl font-bold flex items-center gap-2">
+    <Card className="shadow-lg border-0 bg-white/50 backdrop-blur-sm overflow-hidden p-0 max-w-3xl mx-auto">
+      <div className="bg-slate-900 text-white p-6 md:p-8">
+        <h2 className="text-2xl font-bold flex items-center gap-2">
           <MapPin className="h-6 w-6 text-cyan-400" />
           แจ้งซ่อม
-        </CardTitle>
-        <CardDescription className="text-slate-300">
+        </h2>
+        <p className="text-slate-300 mt-1">
           กรุณากรอกข้อมูลให้ครบถ้วนเพื่อให้เจ้าหน้าที่ดำเนินการได้รวดเร็ว
-        </CardDescription>
-      </CardHeader>
+        </p>
+      </div>
       <CardContent className="p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4">
