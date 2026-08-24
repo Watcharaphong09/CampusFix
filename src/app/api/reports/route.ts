@@ -84,7 +84,7 @@ export async function POST(request: Request) {
     // --- Send LINE Notification ---
     const lineToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
     const lineTargetId = process.env.LINE_ADMIN_USER_ID; // Changed from LINE_GROUP_ID
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://campus-fix-nu.vercel.app';
 
     if (lineToken && lineTargetId) {
       const messageText = `🚨 SMARTFIX CAMPUS
