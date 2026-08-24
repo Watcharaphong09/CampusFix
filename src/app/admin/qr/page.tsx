@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Download, QrCode, Save, History, Trash2, MapPin } from 'lucide-react';
+import { Download, QrCode, Save, History, Trash2, MapPin, Share2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 
@@ -14,6 +14,7 @@ export default function QRManagementPage() {
   const [room, setRoom] = useState('');
   const [appUrl, setAppUrl] = useState('');
   const [history, setHistory] = useState<any[]>([]);
+  const [qrImageUrl, setQrImageUrl] = useState<string>('');
 
   useEffect(() => {
     setAppUrl(window.location.origin);
@@ -50,41 +51,79 @@ export default function QRManagementPage() {
   const locationId = (building && room) ? `${building}-${room}` : '';
   const qrUrl = locationId ? `${appUrl}/report?location=${encodeURIComponent(locationId)}` : appUrl;
 
-  const downloadQR = () => {
-    const svg = document.getElementById('qr-code-svg');
-    if (!svg) return;
+  // Generate the composite image whenever building or room changes
+  useEffect(() => {
+    if (!building || !room) {
+      setQrImageUrl('');
+      return;
+    }
     
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-    
-    img.onload = () => {
-      canvas.width = img.width + 80;
-      canvas.height = img.height + 120;
-      if (ctx) {
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 40, 40);
-        
-        ctx.font = 'bold 24px sans-serif';
-        ctx.fillStyle = '#0f172a';
-        ctx.textAlign = 'center';
-        ctx.fillText('SMARTFIX CAMPUS', canvas.width / 2, canvas.height - 40);
-        
-        ctx.font = '18px sans-serif';
-        ctx.fillStyle = '#64748b';
-        ctx.fillText(`อาคาร ${building} ห้อง ${room}`, canvas.width / 2, canvas.height - 15);
-      }
+    // Give it a tiny delay to ensure the SVG is rendered in the DOM first
+    const timer = setTimeout(() => {
+      const svg = document.getElementById('qr-code-svg');
+      if (!svg) return;
       
-      const pngFile = canvas.toDataURL('image/png');
-      const downloadLink = document.createElement('a');
-      downloadLink.download = `SmartFix-QR-${building}-${room}.png`;
-      downloadLink.href = `${pngFile}`;
-      downloadLink.click();
-    };
-    
-    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        canvas.width = img.width + 80;
+        canvas.height = img.height + 120;
+        if (ctx) {
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 40, 40);
+          
+          ctx.font = 'bold 24px sans-serif';
+          ctx.fillStyle = '#0f172a';
+          ctx.textAlign = 'center';
+          ctx.fillText('SMARTFIX CAMPUS', canvas.width / 2, canvas.height - 40);
+          
+          ctx.font = '18px sans-serif';
+          ctx.fillStyle = '#64748b';
+          ctx.fillText(`อาคาร ${building} ห้อง ${room}`, canvas.width / 2, canvas.height - 15);
+        }
+        
+        setQrImageUrl(canvas.toDataURL('image/png'));
+      };
+      
+      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [building, room, qrUrl]);
+
+  const handleDownloadOrShare = async () => {
+    if (!qrImageUrl) return;
+
+    try {
+      // Create file from Data URL
+      const res = await fetch(qrImageUrl);
+      const blob = await res.blob();
+      const file = new File([blob], `SmartFix-QR-${building}-${room}.png`, { type: 'image/png' });
+
+      // Try Web Share API first (Native on mobile: allows saving directly to photos)
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `QR Code แจ้งซ่อม ${building}-${room}`,
+        });
+        return;
+      }
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        console.error('Share failed', err);
+      }
+      return; // if user canceled, stop here
+    }
+
+    // Fallback to normal download if share is not supported
+    const downloadLink = document.createElement('a');
+    downloadLink.download = `SmartFix-QR-${building}-${room}.png`;
+    downloadLink.href = qrImageUrl;
+    downloadLink.click();
   };
 
   return (
@@ -165,7 +204,9 @@ export default function QRManagementPage() {
           <Card className="flex flex-col items-center justify-center py-10 sticky top-6">
             {building && room ? (
               <div className="flex flex-col items-center space-y-6 w-full px-6">
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                
+                {/* Hidden SVG for generating the image */}
+                <div className="absolute opacity-0 pointer-events-none -left-[9999px]">
                   <QRCodeSVG 
                     id="qr-code-svg"
                     value={qrUrl} 
@@ -174,13 +215,27 @@ export default function QRManagementPage() {
                     includeMargin={true}
                   />
                 </div>
-                <div className="text-center space-y-1 w-full">
-                  <p className="font-bold text-slate-800">SMARTFIX CAMPUS</p>
-                  <p className="text-sm text-slate-500">อาคาร {building} ห้อง {room}</p>
-                </div>
-                <Button onClick={downloadQR} className="bg-cyan-600 hover:bg-cyan-700 text-white w-full">
-                  <Download className="w-4 h-4 mr-2" /> ดาวน์โหลด PNG
-                </Button>
+
+                {qrImageUrl ? (
+                  <div className="space-y-4 w-full">
+                    <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 flex justify-center">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img 
+                        src={qrImageUrl} 
+                        alt={`QR Code ${building}-${room}`} 
+                        className="max-w-full h-auto drop-shadow-sm rounded-lg"
+                      />
+                    </div>
+                    <p className="text-xs text-center text-slate-400">
+                      💡 แตะค้างที่รูปภาพเพื่อบันทึกลงเครื่อง
+                    </p>
+                    <Button onClick={handleDownloadOrShare} className="bg-cyan-600 hover:bg-cyan-700 text-white w-full">
+                      <Share2 className="w-4 h-4 mr-2" /> แชร์ / บันทึกภาพ
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="animate-pulse bg-slate-200 w-48 h-48 rounded-xl"></div>
+                )}
               </div>
             ) : (
               <div className="flex flex-col items-center text-slate-400 space-y-4">
