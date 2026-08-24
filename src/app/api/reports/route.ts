@@ -83,10 +83,9 @@ export async function POST(request: Request) {
 
     // --- Send LINE Notification ---
     const lineToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
-    const lineTargetId = process.env.LINE_ADMIN_USER_ID; // Changed from LINE_GROUP_ID
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://campus-fix-nu.vercel.app';
 
-    if (lineToken && lineTargetId) {
+    if (lineToken) {
       const messageText = `🚨 SMARTFIX CAMPUS
 มีรายการแจ้งซ่อมใหม่
 🎫 Ticket: ${ticketId}
@@ -99,14 +98,14 @@ export async function POST(request: Request) {
 🔎 ดูรายละเอียด: ${appUrl}/track?id=${ticketId}`;
 
       try {
-        const lineResponse = await fetch('https://api.line.me/v2/bot/message/push', {
+        // ใช้ Broadcast API เพื่อส่งให้ "ทุกคน" ที่แอดบอทเป็นเพื่อน
+        const lineResponse = await fetch('https://api.line.me/v2/bot/message/broadcast', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${lineToken}`
           },
           body: JSON.stringify({
-            to: lineTargetId,
             messages: [{ type: 'text', text: messageText }]
           })
         });
