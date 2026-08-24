@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
-import { LayoutDashboard, QrCode, LogOut, BarChart3, Star, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, QrCode, LogOut, BarChart3, Star, ClipboardList, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -42,7 +42,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <span>สร้าง QR Code</span>
           </Link>
         </nav>
-        <div className="p-4 border-t border-slate-800">
+        <div className="p-4 border-t border-slate-800 space-y-2">
+          <Link href="/" className="flex items-center px-4 py-2 w-full text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition">
+            <Home className="w-5 h-5 mr-3" />
+            กลับไปหน้าหลักของเว็บ
+          </Link>
           <form action="/api/auth/signout" method="post">
             <Button variant="ghost" type="submit" className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-950/30">
               <LogOut className="w-5 h-5 mr-3" />
