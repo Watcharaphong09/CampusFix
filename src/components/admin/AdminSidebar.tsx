@@ -85,10 +85,12 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
       <div className="md:hidden flex items-center justify-between p-4 bg-slate-900 text-white shadow-md sticky top-0 z-40">
         <h2 className="text-lg font-bold text-cyan-400">SmartFix Admin</h2>
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white hover:bg-slate-800 active:scale-95 transition-transform">
-              <Menu className="w-6 h-6" />
-            </Button>
+          <SheetTrigger 
+            render={
+              <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white hover:bg-slate-800 active:scale-95 transition-transform" />
+            }
+          >
+            <Menu className="w-6 h-6" />
           </SheetTrigger>
           <SheetContent side="left" className="w-[300px] bg-slate-900 border-r-slate-800 p-0 flex flex-col text-white">
             <SheetHeader className="sr-only">
