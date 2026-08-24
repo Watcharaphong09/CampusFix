@@ -94,7 +94,7 @@ export async function POST(request: Request) {
 🔧 ประเภท: ${category}
 ⚡ Priority: Normal
 📝 รายละเอียด: ${description}
-⏰ เวลา: ${new Date().toLocaleString('th-TH')}
+⏰ เวลา: ${new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })}
 🔎 ดูรายละเอียด: ${appUrl}/track?id=${ticketId}`;
 
       try {
