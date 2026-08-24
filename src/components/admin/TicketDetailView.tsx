@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Clock, MapPin, Wrench, User, Phone, ArrowLeft, Save } from 'lucide-react';
+import { Clock, MapPin, Wrench, User, Phone, ArrowLeft, Save, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
@@ -63,6 +63,23 @@ export default function TicketDetailView({ initialTicket }: { initialTicket: Tic
     }
   };
 
+  const handleDelete = async () => {
+    if (window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบรายการแจ้งซ่อม ${ticket.ticket_id}?\nข้อมูลทั้งหมดที่เกี่ยวข้องจะถูกลบและไม่สามารถกู้คืนได้`)) {
+      const { error } = await supabase
+        .from('reports')
+        .delete()
+        .eq('id', ticket.id);
+      
+      if (error) {
+        toast.error('ลบข้อมูลไม่สำเร็จ: ' + error.message);
+      } else {
+        toast.success(`ลบรายการ ${ticket.ticket_id} สำเร็จ`);
+        router.push('/admin/dashboard');
+        router.refresh();
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -71,7 +88,12 @@ export default function TicketDetailView({ initialTicket }: { initialTicket: Tic
             <ArrowLeft className="w-4 h-4 mr-2" /> กลับไปหน้าแรก
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold text-slate-800">จัดการแจ้งซ่อม: {ticket.ticket_id}</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold text-slate-800 hidden md:block">จัดการแจ้งซ่อม: {ticket.ticket_id}</h1>
+          <Button variant="destructive" size="sm" onClick={handleDelete} className="shadow-sm">
+            <Trash2 className="w-4 h-4 mr-2" /> ลบรายการนี้
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

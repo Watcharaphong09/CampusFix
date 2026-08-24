@@ -7,10 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Eye, Star } from 'lucide-react';
+import { Search, Eye, Star, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function TicketsListView({ initialTickets }: { initialTickets: Ticket[] }) {
   const router = useRouter();
@@ -27,6 +28,22 @@ export default function TicketsListView({ initialTickets }: { initialTickets: Ti
       .eq('id', ticket.id);
     if (!error) {
       router.refresh();
+    }
+  };
+
+  const handleDelete = async (id: string, ticketId: string) => {
+    if (window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบรายการแจ้งซ่อม ${ticketId}?\nข้อมูลทั้งหมดที่เกี่ยวข้องจะถูกลบและไม่สามารถกู้คืนได้`)) {
+      const { error } = await supabase
+        .from('reports')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        toast.error('ลบข้อมูลไม่สำเร็จ: ' + error.message);
+      } else {
+        toast.success(`ลบรายการ ${ticketId} สำเร็จ`);
+        router.refresh();
+      }
     }
   };
 
@@ -159,11 +176,21 @@ export default function TicketsListView({ initialTickets }: { initialTickets: Ti
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Link href={`/admin/tickets/${ticket.ticket_id}`}>
-                        <Button variant="ghost" size="sm">
-                          <Eye className="w-4 h-4 mr-1" /> ดูข้อมูล
+                      <div className="flex justify-end gap-2">
+                        <Link href={`/admin/tickets/${ticket.ticket_id}`}>
+                          <Button variant="ghost" size="sm" className="text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50">
+                            <Eye className="w-4 h-4 mr-1" /> ดูข้อมูล
+                          </Button>
+                        </Link>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDelete(ticket.id, ticket.ticket_id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </Button>
-                      </Link>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
